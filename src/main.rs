@@ -30,7 +30,7 @@ fn experiment() {
 
     let mut mov1: Option<minimax::A>;
     let mut mov2: Option<minimax::A> = None;
-    let depth = 4;
+    let depth = 7;
 
     while board.winner() == piece::Piece::Empty {
         mov1 = Some(agent1.run(depth, mov2));

@@ -43,11 +43,13 @@ impl MinimaxAgent {
         let max = Self::maxbool(self.player);
         let moves = self.state.moves();
         let mut value = if max { V::NEG_INFINITY } else { V::INFINITY };
-        let mut action_found = 0;
+        let mut action_found = moves[0];
+        self.alpha = V::NEG_INFINITY;
+        self.beta = V::INFINITY;
 
         // Use negamax on each initial action
         for action in moves.into_iter() {
-            let neg = Self::negamax(&mut self.state, action, depth, max);
+            let neg = -Self::negamax(&mut self.state, action, depth, !max, &mut -self.beta, &mut -self.alpha);
             if  max && neg > value || !max && neg < value {
                 value = neg;
                 action_found = action; // Stores the action with the best score.
@@ -56,13 +58,14 @@ impl MinimaxAgent {
 
         action_found
     }
-
-    fn negamax(state: &mut State, action: A, depth: D, max: bool) -> V {
+    
+    fn negamax(state: &mut State, action: A, depth: D, _max: bool, alpha: &mut V, beta: &mut V) -> V {
+        //state.print();
         // Check for terminal states
         let winner = state.winner();
         // Either the game is over
         if winner != Piece::Empty {
-            return Self::utility(winner, Self::player(max));
+            return Self::utility(winner);
         }
         // Or the search depth has been reached.
         if depth == 0 {
@@ -73,9 +76,13 @@ impl MinimaxAgent {
         let mut value = V::NEG_INFINITY;
         state.make_move(action);
         let moves = state.moves();
-        for child in moves.into_iter() {
-            value = V::max(value, -Self::negamax(state, child, depth - 1, !max));
-            state.undo_move();
+        for action in moves.into_iter() {
+            let nega = -Self::negamax(state, action, depth - 1, !_max, &mut -*beta, &mut -*alpha);
+            value = V::max(value, nega);
+            *alpha = V::max(value, *alpha);
+            if alpha >= beta {
+                break;
+            }
         }
         state.undo_move();
         value
@@ -90,20 +97,21 @@ impl MinimaxAgent {
     }
 
     /// Value for when the game either has a winner or there are no moves left.
-    fn utility(winner: Piece, player: Piece) -> V {
+    fn utility(winner: Piece) -> V {
         match winner {
-            Empty  => 0.0,
-            Draw   => 0.5,
-            P1     => {
-                if player == P1 { 1.0 }
-                else { 0.0 }
-            },
-            P2     => {
-                if player == P2 { 1.0 }
-                else { 0.0 }
-            },
+            Piece::Empty  =>  0.0,
+            Piece::Draw   =>  0.5,
+            Piece::P1     =>  1.0,
+            Piece::P2     => -1.0,
         }
 
     }
 
+}
+
+
+#[test]
+fn inf_test() {
+    assert!(0. < V::INFINITY);
+    assert!(0. > V::NEG_INFINITY);
 }

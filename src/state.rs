@@ -97,7 +97,8 @@ impl State {
     pub fn moves(&self) -> Vec<u8> {
         let mut vec = Vec::new();
         for (i, h) in self.height.iter().enumerate() {
-            if *h % 7 != 6 {
+            let modulus = *(h) % 7;
+            if modulus != 6 {
                 vec.push(i as u8);
             }
         }
@@ -139,6 +140,9 @@ impl State {
         accumulator
     }
 
+    pub fn print(&self) {
+        println!("{}", self.to_string());
+    }
 }
 
 impl ToString for State {
@@ -193,4 +197,29 @@ fn string_test() {
 
     println!("{}", board.to_string());
     println!("Winner: {}, Heuristic: {:0.3}", board.winner().to_string(), board.heuristic());
+}
+
+#[test]
+fn moves_test() {
+    let mut board = State::new();
+
+    // Set up test moves on one column.
+    for _i in 0..6 {
+        board.make_move(0);
+    }
+    
+    board.print();
+    let mut moves = board.moves();
+    for m in moves.into_iter() {
+        print!("{}, ", m);
+    }
+    println!();
+
+    board.undo_move();
+    board.print();
+    moves = board.moves();
+    for m in moves.into_iter() {
+        print!("{}, ", m);
+    }
+    println!();
 }
