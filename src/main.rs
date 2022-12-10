@@ -23,25 +23,38 @@ fn main() {
 }
 
 fn experiment() {
-    let mut agent1 = minimax::MinimaxAgent::new(piece::Piece::P1);
-    let mut agent2 = minimax::MinimaxAgent::new(piece::Piece::P2);
+    println!("---------- START ----------");
 
     let mut board = state::State::new();
 
-    let mut mov1: Option<minimax::A>;
-    let mut mov2: Option<minimax::A> = None;
-    let depth = 7;
+    let mut agent = vec![
+        minimax::MinimaxAgent::new(piece::Piece::P1), 
+        minimax::MinimaxAgent::new(piece::Piece::P2),
+    ];
+
+    let mut mov: Vec<Option<minimax::A>> = vec![
+        None, None
+    ];
+
+    let depth = 9;
 
     while board.winner() == piece::Piece::Empty {
-        mov1 = Some(agent1.run(depth, mov2));
-        board.make_move(mov1.unwrap());
-        println!("{}\n", board.to_string());
+        // Get indicies
+        let p = (board.moves_performed() % 2) as usize;
+        let o = (p + 1) % 2;
 
-        mov2 = Some(agent2.run(depth, mov1));
-        board.make_move(mov2.unwrap());
-        println!("{}\n", board.to_string());
+        // Print information
+        println!("---------- Player {} Move ----------", p + 1);
+        print!("move_o: {}, ", mov[o].unwrap_or(8));
+        println!("move_p: {}", mov[p].unwrap_or(8));
+
+        mov[p] = Some(agent[p].run(depth, mov[o]));
+        board.make_move(mov[p].unwrap());
+        board.print();
+
     }
 
-    println!("{}", board.to_string());
-    println!("Winner: {}", board.winner().to_string());
+    println!("Winner: {}\n", board.winner().to_string());
+
+    println!("---------- END ----------");
 }
